@@ -37,4 +37,15 @@ export class BooksService {
   remove(id: string) {
     return this.bookModel.findByIdAndDelete(id);
   }
+
+  search(query: string) {
+    return this.bookModel.find({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { author: { $regex: query, $options: 'i' } },
+        { category: { $regex: query, $options: 'i' } },
+      ],
+    });
+  }
+
 }
