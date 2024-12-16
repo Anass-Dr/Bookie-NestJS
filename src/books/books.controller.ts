@@ -32,6 +32,11 @@ export class BooksController {
     return this.booksService.search(query);
   }
 
+  @Get('loans')
+  findLoans() {
+    return this.booksService.getLoans();
+  }
+
   @Get(':id')
   findOne(@Param('id', ValidateObjectIdPipe) id: string) {
     return this.booksService.findOne(id);

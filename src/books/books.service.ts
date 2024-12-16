@@ -92,4 +92,8 @@ export class BooksService {
     loan.status = LoanStatus.RETURNED;
     return loan.save();
   }
+
+  getLoans() {
+    return this.bookLoanModel.find();
+  }
 }
