@@ -70,4 +70,26 @@ export class BooksService {
       status: LoanStatus.ACTIVE,
     });
   }
+
+  async return(id: string) {
+    const book = await this.bookModel.findById(id);
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+    if (book.status === BookStatus.AVAILABLE) {
+      throw new NotFoundException('Book is not borrowed');
+    }
+    book.status = BookStatus.AVAILABLE;
+    await book.save();
+    const loan = await this.bookLoanModel.findOne({
+      book: book.id,
+      status: LoanStatus.ACTIVE,
+    });
+
+    if (!loan) {
+      throw new NotFoundException('Loan not found');
+    }
+    loan.status = LoanStatus.RETURNED;
+    return loan.save();
+  }
 }
