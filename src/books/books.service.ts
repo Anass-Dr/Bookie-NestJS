@@ -4,10 +4,16 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { Book } from './schemas/book.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { BookStatus } from './enums/book-status.enum';
+import { BookLoan } from './schemas/book-loan.schema';
+import { LoanStatus } from './enums/loan-status.enum';
 
 @Injectable()
 export class BooksService {
-  constructor(@InjectModel(Book.name) private bookModel: Model<Book>) {}
+  constructor(
+    @InjectModel(Book.name) private bookModel: Model<Book>,
+    @InjectModel(BookLoan.name) private bookLoanModel: Model<BookLoan>,
+  ) {}
 
   create(createBookDto: CreateBookDto) {
     return this.bookModel.create(createBookDto);
@@ -48,4 +54,20 @@ export class BooksService {
     });
   }
 
+  async borrow(id: string) {
+    const book = await this.bookModel.findById(id);
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+    if (book.status === BookStatus.BORROWED) {
+      throw new NotFoundException('Book is already borrowed');
+    }
+    book.status = BookStatus.BORROWED;
+    await book.save();
+    return this.bookLoanModel.create({
+      book: book.id,
+      user: '67602df30aa68e9570241294',
+      status: LoanStatus.ACTIVE,
+    });
+  }
 }

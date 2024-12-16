@@ -45,6 +45,11 @@ export class BooksController {
     return this.booksService.update(id, updateBookDto);
   }
 
+  @Post(':id/borrow')
+  borrow(@Param('id', ValidateObjectIdPipe) id: string) {
+    return this.booksService.borrow(id);
+  }
+
   @Delete(':id')
   remove(@Param('id', ValidateObjectIdPipe) id: string) {
     return this.booksService.remove(id);
