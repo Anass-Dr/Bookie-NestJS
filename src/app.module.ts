@@ -5,6 +5,8 @@ import { BooksModule } from './books/books.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     BooksModule,
     UsersModule,
+    ScheduleModule.forRoot(),
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

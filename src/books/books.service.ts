@@ -7,12 +7,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BookStatus } from './enums/book-status.enum';
 import { BookLoan } from './schemas/book-loan.schema';
 import { LoanStatus } from './enums/loan-status.enum';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class BooksService {
   constructor(
     @InjectModel(Book.name) private bookModel: Model<Book>,
     @InjectModel(BookLoan.name) private bookLoanModel: Model<BookLoan>,
+    private readonly mailService: MailService,
   ) {}
 
   create(createBookDto: CreateBookDto) {
@@ -95,5 +98,25 @@ export class BooksService {
 
   getLoans() {
     return this.bookLoanModel.find();
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_10AM)
+  async handleCron() {
+    const loans = await this.bookLoanModel
+      .find({
+        status: LoanStatus.ACTIVE,
+      })
+      .populate('book')
+      .populate('user');
+
+    loans.forEach((loan) => {
+      if (loan.borrowDate.getTime() + 7 * 24 * 60 * 60 * 1000 < Date.now()) {
+        this.mailService.sendMail({
+          to: loan.user.email,
+          subject: 'Return your borrowed books',
+          text: `Please return your borrowed book "${loan.book.title}" on time`,
+        });
+      }
+    });
   }
 }
