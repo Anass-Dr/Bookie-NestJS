@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -25,6 +27,16 @@ export class BooksController {
   @Get()
   findAll() {
     return this.booksService.findAll();
+  }
+
+  @Get('available')
+  findAvailable() {
+    return this.booksService.findAvailable();
+  }
+
+  @Get('borrowed/:id')
+  findBorrowed(@Param('id') id: string) {
+    return this.booksService.findBorrowed(id);
   }
 
   @Get('search')
@@ -51,13 +63,20 @@ export class BooksController {
   }
 
   @Post(':id/borrow')
-  borrow(@Param('id', ValidateObjectIdPipe) id: string) {
-    return this.booksService.borrow(id);
+  borrow(
+    @Param('id', ValidateObjectIdPipe) id: string,
+    @Body('userId') userId: string,
+  ) {
+    return this.booksService.borrow(id, userId);
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Post(':id/return')
-  return(@Param('id', ValidateObjectIdPipe) id: string) {
-    return this.booksService.return(id);
+  return(
+    @Param('id', ValidateObjectIdPipe) id: string,
+    @Body('userId') userId: string,
+  ) {
+    return this.booksService.return(id, userId);
   }
 
   @Delete(':id')
