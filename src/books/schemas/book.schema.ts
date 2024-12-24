@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { BookCategory } from '../enums/book-category.enum';
+import { HydratedDocument, Types } from 'mongoose';
 import { BookStatus } from '../enums/book-status.enum';
+import { Category } from 'src/categories/schemas/category.schema';
 
 export type BookDocument = HydratedDocument<Book>;
 
@@ -23,8 +23,8 @@ export class Book {
   @Prop({ required: true, trim: true })
   author: string;
 
-  @Prop({ required: true, enum: BookCategory })
-  category: BookCategory;
+  @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
+  category: Category;
 
   @Prop({ required: true })
   publicationYear: number;
