@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BookLoan, BookLoanSchema } from './schemas/book-loan.schema';
 import { Book, BookSchema } from './schemas/book.schema';
 import { MailModule } from 'src/mail/mail.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { MailModule } from 'src/mail/mail.module';
       { name: BookLoan.name, schema: BookLoanSchema },
     ]),
     MailModule,
+    UsersModule,
   ],
   controllers: [BooksController],
   providers: [BooksService],
