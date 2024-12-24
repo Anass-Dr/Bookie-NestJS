@@ -9,6 +9,7 @@ import { BookLoan } from './schemas/book-loan.schema';
 import { LoanStatus } from './enums/loan-status.enum';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { MailService } from 'src/mail/mail.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class BooksService {
@@ -16,6 +17,7 @@ export class BooksService {
     @InjectModel(Book.name) private bookModel: Model<Book>,
     @InjectModel(BookLoan.name) private bookLoanModel: Model<BookLoan>,
     private readonly mailService: MailService,
+    private readonly usersService: UsersService,
   ) {}
 
   create(createBookDto: CreateBookDto) {
@@ -24,6 +26,20 @@ export class BooksService {
 
   findAll() {
     return this.bookModel.find();
+  }
+
+  findAvailable() {
+    return this.bookModel.find({ status: BookStatus.AVAILABLE });
+  }
+
+  async findBorrowed(id: string) {
+    const user = await this.usersService.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return this.bookLoanModel
+      .find({ user: String(user._id), status: LoanStatus.ACTIVE })
+      .populate('book');
   }
 
   async findOne(id: string) {
@@ -57,7 +73,8 @@ export class BooksService {
     });
   }
 
-  async borrow(id: string) {
+  async borrow(id: string, userId: string) {
+    const user = await this.usersService.findOne(userId);
     const book = await this.bookModel.findById(id);
     if (!book) {
       throw new NotFoundException('Book not found');
@@ -67,14 +84,19 @@ export class BooksService {
     }
     book.status = BookStatus.BORROWED;
     await book.save();
-    return this.bookLoanModel.create({
+    const isCreated = await this.bookLoanModel.create({
       book: book.id,
-      user: '67602df30aa68e9570241294',
+      user: String(user._id),
       status: LoanStatus.ACTIVE,
     });
+    if (!isCreated) {
+      throw new NotFoundException('Loan not created');
+    }
+    return { message: 'Book borrowed successfully' };
   }
 
-  async return(id: string) {
+  async return(id: string, userId: string) {
+    const user = await this.usersService.findOne(userId);
     const book = await this.bookModel.findById(id);
     if (!book) {
       throw new NotFoundException('Book not found');
@@ -85,6 +107,7 @@ export class BooksService {
     book.status = BookStatus.AVAILABLE;
     await book.save();
     const loan = await this.bookLoanModel.findOne({
+      user: String(user._id),
       book: book.id,
       status: LoanStatus.ACTIVE,
     });
