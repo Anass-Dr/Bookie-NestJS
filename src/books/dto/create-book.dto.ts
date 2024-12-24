@@ -6,6 +6,7 @@ import {
   IsString,
 } from 'class-validator';
 import { BookCategory } from '../enums/book-category.enum';
+import { Type } from 'class-transformer';
 
 export class CreateBookDto {
   @IsString()
@@ -23,6 +24,7 @@ export class CreateBookDto {
 
   @IsNumber()
   @IsNotEmpty()
+  @Type(() => Number)
   publicationYear: number;
 
   @IsString()
